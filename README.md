@@ -57,7 +57,3 @@ Browser <- JSP view          <- WebController
 | Views | `src/main/webapp/WEB-INF/views/` and `src/main/webapp/assets/app.css` | Render and style the pages. |
 
 The database has five tables: `users`, `grounds`, `bookings`, `matches`, and `join_requests`. A unique ground/date/slot key blocks double booking. A unique match/player key blocks duplicate requests. The service checks the organizer before approval, locks the match while approving, and reopens a full match when an approved player cancels.
-
-## UI previews
-
-Screenshots from the running Tomcat app are in `preview/`: [login](preview/login-desktop.png), [ground booking](preview/grounds-desktop.png), [post form](preview/organizer-post-form.png), [open matches](preview/matches-desktop.png), and [approval buttons](preview/organizer-pending.png). Phone-width examples include [grounds](preview/grounds-mobile.png) and [matches](preview/matches-mobile.png). The post-form and approval screenshots used temporary test data that was removed after verification.
