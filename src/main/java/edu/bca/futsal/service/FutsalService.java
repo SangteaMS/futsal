@@ -79,12 +79,12 @@ public class FutsalService {
         }
     }
 
-    public String createMatch(int bookingId, int organizerId, int needed, String title, String notes) {
+    public String createMatch(int bookingId, int organizerId, int needed, String title) {
         if (needed < 1 || needed > 30) {
             return "Enter between 1 and 30 players needed.";
         }
         try {
-            int created = dao.createMatch(bookingId, organizerId, needed, title, notes);
+            int created = dao.createMatch(bookingId, organizerId, needed, title);
             return created == 1 ? "Match posted." : "Choose one of your unused bookings.";
         } catch (DuplicateKeyException ex) {
             return "This booking already has a match.";

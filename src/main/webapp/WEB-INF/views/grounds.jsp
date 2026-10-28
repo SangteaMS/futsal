@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Book a ground | Futsal Finder</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029-clean">
 </head>
 <body>
   <%@ include file="fragments.jspf" %>
@@ -24,7 +24,7 @@
           <div class="ground-card-body">
             <h3><c:out value="${g.name}"/></h3>
             <p class="area"><c:out value="${g.area}"/></p>
-            <span class="help"><c:out value="${g.capacity}"/> players</span>
+            <span class="help"><c:out value="${g.surface}"/> | <c:out value="${g.capacity}"/> players</span>
           </div>
           <div class="ground-book">
             <c:choose>

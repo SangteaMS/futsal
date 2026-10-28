@@ -5,7 +5,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sign in | Futsal Finder</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029-clean">
 </head>
 <body>
   <header class="site-header"><div class="header-inner"><span class="brand">Futsal Finder</span></div></header>

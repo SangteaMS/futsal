@@ -43,7 +43,7 @@ public class FutsalDao {
 
     public List<Map<String, Object>> bookingsFor(int organizerId) {
         return db.query("""
-                SELECT b.*, g.name ground_name FROM bookings b
+                SELECT b.id, b.match_date, b.slot, g.name ground_name FROM bookings b
                 JOIN grounds g ON g.id=b.ground_id
                 LEFT JOIN matches m ON m.booking_id=b.id
                 WHERE b.organizer_id=? AND m.id IS NULL AND b.match_date >= CURRENT_DATE
@@ -53,11 +53,10 @@ public class FutsalDao {
 
     public List<Map<String, Object>> openMatches(int playerId) {
         return db.query("""
-                SELECT m.*, u.name organizer_name, g.name ground_name, b.match_date, b.slot,
+                SELECT m.id, m.title, m.additional_players_needed, g.name ground_name, b.match_date, b.slot,
                   (SELECT COUNT(*) FROM join_requests x WHERE x.match_id=m.id AND x.status='APPROVED') approved_count,
                   COALESCE(j.status, 'NONE') request_status
                 FROM matches m
-                JOIN users u ON u.id=m.organizer_id
                 JOIN bookings b ON b.id=m.booking_id
                 JOIN grounds g ON g.id=b.ground_id
                 LEFT JOIN join_requests j ON j.match_id=m.id AND j.player_id=?
@@ -68,11 +67,11 @@ public class FutsalDao {
 
     public Map<String, Object> matchDetails(int matchId, int playerId) {
         var rows = db.query("""
-                SELECT m.*, u.name organizer_name, g.name ground_name, g.area, b.match_date, b.slot,
+                SELECT m.id, m.title, m.status, m.additional_players_needed,
+                  g.name ground_name, b.match_date, b.slot,
                   (SELECT COUNT(*) FROM join_requests x WHERE x.match_id=m.id AND x.status='APPROVED') approved_count,
                   COALESCE(j.status, 'NONE') request_status
                 FROM matches m
-                JOIN users u ON u.id=m.organizer_id
                 JOIN bookings b ON b.id=m.booking_id
                 JOIN grounds g ON g.id=b.ground_id
                 LEFT JOIN join_requests j ON j.match_id=m.id AND j.player_id=?
@@ -83,7 +82,8 @@ public class FutsalDao {
 
     public List<Map<String, Object>> myMatches(int organizerId) {
         return db.query("""
-                SELECT m.*, g.name ground_name, b.match_date, b.slot,
+                SELECT m.id, m.title, m.status, m.additional_players_needed,
+                  g.name ground_name, b.match_date, b.slot,
                   (SELECT COUNT(*) FROM join_requests j WHERE j.match_id=m.id AND j.status='APPROVED') approved_count
                 FROM matches m
                 JOIN bookings b ON b.id=m.booking_id
@@ -95,7 +95,7 @@ public class FutsalDao {
 
     public List<Map<String, Object>> requests(int organizerId) {
         return db.query("""
-                SELECT j.id request_id, j.status, u.name player_name, m.title match_title,
+                SELECT j.id request_id, u.name player_name, m.title match_title,
                   b.match_date, b.slot
                 FROM join_requests j
                 JOIN users u ON u.id=j.player_id
@@ -108,7 +108,8 @@ public class FutsalDao {
 
     public List<Map<String, Object>> myRequests(int playerId) {
         return db.query("""
-                SELECT j.*, m.title match_title, g.name ground_name, b.match_date, b.slot
+                SELECT j.id, j.match_id, j.status, m.title match_title,
+                  g.name ground_name, b.match_date, b.slot
                 FROM join_requests j
                 JOIN matches m ON m.id=j.match_id
                 JOIN bookings b ON b.id=m.booking_id
@@ -123,12 +124,12 @@ public class FutsalDao {
                 groundId, organizerId, date, slot);
     }
 
-    public int createMatch(int bookingId, int organizerId, int needed, String title, String notes) {
+    public int createMatch(int bookingId, int organizerId, int needed, String title) {
         return db.update("""
-                INSERT INTO matches(booking_id,organizer_id,title,additional_players_needed,notes)
-                SELECT ?,?,?,?,? WHERE EXISTS
+                INSERT INTO matches(booking_id,organizer_id,title,additional_players_needed)
+                SELECT ?,?,?,? WHERE EXISTS
                   (SELECT 1 FROM bookings WHERE id=? AND organizer_id=?)
-                """, bookingId, organizerId, title, needed, notes, bookingId, organizerId);
+                """, bookingId, organizerId, title, needed, bookingId, organizerId);
     }
 
     public int requestJoin(int matchId, int playerId) {
@@ -141,7 +142,7 @@ public class FutsalDao {
 
     public Map<String, Object> lockMatch(int matchId) {
         return db.queryForMap("""
-                SELECT m.*,
+                SELECT m.id, m.status, m.additional_players_needed,
                   (SELECT COUNT(*) FROM join_requests j WHERE j.match_id=m.id AND j.status='APPROVED') approved_count
                 FROM matches m WHERE m.id=? FOR UPDATE
                 """, matchId);

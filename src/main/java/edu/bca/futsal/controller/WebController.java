@@ -61,11 +61,6 @@ public class WebController {
         return "redirect:/login";
     }
 
-    @GetMapping("/dashboard")
-    public String dashboard(HttpSession session) {
-        return firstPage(user(session));
-    }
-
     @GetMapping("/grounds")
     public String grounds(@RequestParam(required = false) String date, Model model) {
         String selected = date == null || date.isBlank() ? LocalDate.now().plusDays(1).toString() : date;
@@ -122,10 +117,9 @@ public class WebController {
     @PostMapping("/matches")
     public String createMatch(@RequestParam int bookingId, @RequestParam int needed,
                               @RequestParam String title,
-                              @RequestParam(required = false, defaultValue = "") String notes,
                               HttpSession session, Model model) {
         int organizerId = user(session).getId();
-        model.addAttribute("flash", service.createMatch(bookingId, organizerId, needed, title, notes));
+        model.addAttribute("flash", service.createMatch(bookingId, organizerId, needed, title));
         organizerData(organizerId, model);
         return "organizer";
     }

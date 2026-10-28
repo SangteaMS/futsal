@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My requests | Futsal Finder</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029-clean">
 </head>
 <body>
   <%@ include file="fragments.jspf" %>
@@ -15,7 +15,7 @@
       <c:forEach items="${requests}" var="r">
         <article class="item-row">
           <div class="item-main"><h2 class="item-title"><a href="${pageContext.request.contextPath}/matches/${r.match_id}"><c:out value="${r.match_title}"/></a></h2><div class="meta"><span><c:out value="${r.ground_name}"/></span><span><c:out value="${r.match_date}"/></span><span><c:out value="${r.slot}"/></span></div></div>
-          <div class="item-action"><span class="status ${r.status == 'PENDING' ? 'pending' : (r.status == 'REJECTED' || r.status == 'CANCELLED' ? 'rejected' : '')}"><c:out value="${r.status}"/></span><c:if test="${r.status == 'APPROVED'}"><form method="post" action="${pageContext.request.contextPath}/requests/${r.id}/cancel"><button class="button danger small" type="submit">Cancel place</button></form></c:if></div>
+          <div class="item-action"><span class="status ${r.status == 'PENDING' ? 'pending' : (r.status == 'REJECTED' || r.status == 'CANCELLED' ? 'rejected' : '')}"><c:out value="${r.status}"/></span><c:if test="${r.status == 'APPROVED'}"><form method="post" action="${pageContext.request.contextPath}/requests/${r.id}/cancel"><button class="button quiet small" type="submit">Cancel place</button></form></c:if></div>
         </article>
       </c:forEach>
       <c:if test="${empty requests}"><p class="empty">You have not requested to join a match yet.</p></c:if>
