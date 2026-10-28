@@ -1,11 +1,148 @@
 package edu.bca.futsal.service;
-import java.util.*; import edu.bca.futsal.dao.FutsalDao; import edu.bca.futsal.model.Account; import org.springframework.dao.DuplicateKeyException; import org.springframework.jdbc.core.JdbcTemplate; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
-@Service public class FutsalService {
- private final FutsalDao dao; private final JdbcTemplate db; public FutsalService(FutsalDao dao,JdbcTemplate db){this.dao=dao;this.db=db;}
- public Account login(String e,String p){return dao.login(e,p);} public List<Map<String,Object>> grounds(){return dao.grounds();} public List<Map<String,Object>> grounds(String date){var grounds=dao.grounds();var slots=List.of("06:00 PM – 07:00 PM","07:00 PM – 08:00 PM","08:00 PM – 09:00 PM","09:00 PM – 10:00 PM");for(var g:grounds){var all=new ArrayList<>(slots);all.removeAll(dao.bookedSlots(((Number)g.get("id")).intValue(),date));g.put("availableSlots",all);}return grounds;} public List<String> slots(){return List.of("06:00 PM – 07:00 PM","07:00 PM – 08:00 PM","08:00 PM – 09:00 PM","09:00 PM – 10:00 PM");} public List<Map<String,Object>> bookings(){return dao.bookings();} public List<Map<String,Object>> bookingsFor(int id){return dao.bookingsFor(id);} public List<Map<String,Object>> openMatches(int player){return dao.openMatches(player);} public Map<String,Object> matchDetails(int match,int player){return dao.matchDetails(match,player);} public List<Map<String,Object>> myMatches(int id){return dao.myMatches(id);} public List<Map<String,Object>> requests(int id){return dao.requests(id);} public List<Map<String,Object>> myRequests(int id){return dao.myRequests(id);}
- @Transactional public String book(int ground,int organizer,String date,String slot){try{if(java.time.LocalDate.parse(date).isBefore(java.time.LocalDate.now()))return "Choose today or a future date.";if(!java.util.Set.of("06:00 PM – 07:00 PM","07:00 PM – 08:00 PM","08:00 PM – 09:00 PM","09:00 PM – 10:00 PM").contains(slot))return "Choose one of the listed time slots.";dao.createBooking(ground,organizer,date,slot);return "Ground booked. Now create your match from My bookings.";}catch(DuplicateKeyException ex){return "That ground and time slot was just booked. Please choose another.";}catch(java.time.DateTimeException ex){return "Enter a valid booking date.";}}
- public String createMatch(int booking,int organizer,int needed,String title,String notes){if(needed<1||needed>30)return "Enter between 1 and 30 additional players.";try{return dao.createMatch(booking,organizer,needed,title,notes)==1?"Match posted for players.":"Select one of your unused bookings.";}catch(DuplicateKeyException ex){return "This booking already has a match.";}}
- @Transactional public String join(int match,int player){try{return dao.requestJoin(match,player)==1?"Join request sent to the organizer.":"This match is no longer open.";}catch(DuplicateKeyException ex){return "You already requested to join this match.";}}
- @Transactional public String decide(int request,int organizer,String decision){Map<String,Object> req=dao.request(request);int match=(int)req.get("match_id");if(!dao.ownsMatch(match,organizer))return "Only this match's organizer can decide requests.";if(!"PENDING".equals(req.get("status")))return "This request was already handled.";Map<String,Object> m=dao.lockMatch(match);if("APPROVE".equals(decision)){if(!"OPEN".equals(m.get("status")))return "This match is closed.";if(((Number)m.get("approved_count")).intValue()>=(int)m.get("additional_players_needed"))return "The match is full; this request cannot be approved.";dao.setRequest(request,"APPROVED");int count=((Number)m.get("approved_count")).intValue()+1;if(count>=(int)m.get("additional_players_needed"))dao.setMatchStatus(match,"FULL");return "Player approved.";}dao.setRequest(request,"REJECTED");return "Request rejected.";}
- @Transactional public String cancel(int request,int player){var row=dao.request(request);if(!"APPROVED".equals(row.get("status"))||dao.cancelApproved(request,player)!=1)return "Only your approved place can be cancelled.";int match=(int)row.get("match_id");Map<String,Object> m=dao.lockMatch(match);if("FULL".equals(m.get("status")))dao.setMatchStatus(match,"OPEN");return "Place cancelled and made available again.";}
+
+import edu.bca.futsal.dao.FutsalDao;
+import edu.bca.futsal.model.Account;
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class FutsalService {
+    private static final List<String> SLOTS = List.of(
+            "06:00 PM – 07:00 PM", "07:00 PM – 08:00 PM",
+            "08:00 PM – 09:00 PM", "09:00 PM – 10:00 PM");
+
+    private final FutsalDao dao;
+
+    public FutsalService(FutsalDao dao) {
+        this.dao = dao;
+    }
+
+    public Account login(String email, String password) {
+        return dao.login(email, password);
+    }
+
+    public List<Map<String, Object>> grounds(String date) {
+        var grounds = dao.grounds();
+        for (var ground : grounds) {
+            var available = new ArrayList<>(SLOTS);
+            available.removeAll(dao.bookedSlots(((Number) ground.get("id")).intValue(), date));
+            ground.put("availableSlots", available);
+        }
+        return grounds;
+    }
+
+    public List<Map<String, Object>> bookingsFor(int organizerId) {
+        return dao.bookingsFor(organizerId);
+    }
+
+    public List<Map<String, Object>> openMatches(int playerId) {
+        return dao.openMatches(playerId);
+    }
+
+    public Map<String, Object> matchDetails(int matchId, int playerId) {
+        return dao.matchDetails(matchId, playerId);
+    }
+
+    public List<Map<String, Object>> myMatches(int organizerId) {
+        return dao.myMatches(organizerId);
+    }
+
+    public List<Map<String, Object>> requests(int organizerId) {
+        return dao.requests(organizerId);
+    }
+
+    public List<Map<String, Object>> myRequests(int playerId) {
+        return dao.myRequests(playerId);
+    }
+
+    @Transactional
+    public String book(int groundId, int organizerId, String date, String slot) {
+        try {
+            if (LocalDate.parse(date).isBefore(LocalDate.now())) {
+                return "Choose today or a future date.";
+            }
+            if (!SLOTS.contains(slot)) {
+                return "Choose one of the listed time slots.";
+            }
+            dao.createBooking(groundId, organizerId, date, slot);
+            return "Ground booked. Post your match from Matches & requests.";
+        } catch (DuplicateKeyException ex) {
+            return "That ground and slot is already booked. Choose another.";
+        } catch (DateTimeException ex) {
+            return "Enter a valid booking date.";
+        }
+    }
+
+    public String createMatch(int bookingId, int organizerId, int needed, String title, String notes) {
+        if (needed < 1 || needed > 30) {
+            return "Enter between 1 and 30 players needed.";
+        }
+        try {
+            int created = dao.createMatch(bookingId, organizerId, needed, title, notes);
+            return created == 1 ? "Match posted." : "Choose one of your unused bookings.";
+        } catch (DuplicateKeyException ex) {
+            return "This booking already has a match.";
+        }
+    }
+
+    @Transactional
+    public String join(int matchId, int playerId) {
+        try {
+            int created = dao.requestJoin(matchId, playerId);
+            return created == 1 ? "Request sent to the organizer." : "This match is no longer open.";
+        } catch (DuplicateKeyException ex) {
+            return "You already requested to join this match.";
+        }
+    }
+
+    @Transactional
+    public String decide(int requestId, int organizerId, String decision) {
+        var request = dao.request(requestId);
+        int matchId = ((Number) request.get("match_id")).intValue();
+        if (!dao.ownsMatch(matchId, organizerId)) {
+            return "Only this match's organizer can decide requests.";
+        }
+        if (!"PENDING".equals(request.get("status"))) {
+            return "This request was already handled.";
+        }
+        if (!"APPROVE".equals(decision) && !"REJECT".equals(decision)) {
+            return "Choose approve or reject.";
+        }
+
+        var match = dao.lockMatch(matchId);
+        if ("REJECT".equals(decision)) {
+            dao.setRequest(requestId, "REJECTED");
+            return "Request rejected.";
+        }
+        int approved = ((Number) match.get("approved_count")).intValue();
+        int needed = ((Number) match.get("additional_players_needed")).intValue();
+        if (!"OPEN".equals(match.get("status")) || approved >= needed) {
+            return "The match is full; this request cannot be approved.";
+        }
+        dao.setRequest(requestId, "APPROVED");
+        if (approved + 1 >= needed) {
+            dao.setMatchStatus(matchId, "FULL");
+        }
+        return "Player approved.";
+    }
+
+    @Transactional
+    public String cancel(int requestId, int playerId) {
+        var request = dao.request(requestId);
+        if (!"APPROVED".equals(request.get("status")) || dao.cancelApproved(requestId, playerId) != 1) {
+            return "Only your approved place can be cancelled.";
+        }
+        int matchId = ((Number) request.get("match_id")).intValue();
+        var match = dao.lockMatch(matchId);
+        if ("FULL".equals(match.get("status"))) {
+            dao.setMatchStatus(matchId, "OPEN");
+        }
+        return "Place cancelled and made available again.";
+    }
 }

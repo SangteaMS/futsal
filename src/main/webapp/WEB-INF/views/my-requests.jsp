@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My requests | Futsal Finder</title>
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261026">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029">
 </head>
 <body>
   <%@ include file="fragments.jspf" %>
   <main class="container">
-    <div class="page-heading"><div><h1>My requests</h1><p>See the status of each match you asked to join.</p></div><a class="button secondary" href="${pageContext.request.contextPath}/matches">Find a match</a></div>
+    <div class="page-heading"><div><h1>My requests</h1><p>Approved players can cancel their place here.</p></div></div>
     <c:if test="${not empty flash}"><div class="notice" role="status"><c:out value="${flash}"/></div></c:if>
     <div class="item-list">
       <c:forEach items="${requests}" var="r">

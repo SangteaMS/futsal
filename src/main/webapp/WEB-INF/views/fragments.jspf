@@ -1,12 +1,11 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <header class="site-header">
   <div class="header-inner">
-    <a class="brand" href="${pageContext.request.contextPath}/dashboard"><span class="brand-mark" aria-hidden="true"></span>Futsal Finder</a>
+    <a class="brand" href="${pageContext.request.contextPath}${user.role == 'ORGANIZER' ? '/grounds' : '/matches'}">Futsal Finder</a>
     <nav class="site-nav" aria-label="Main navigation">
-      <a href="${pageContext.request.contextPath}/dashboard">Home</a>
       <c:if test="${user.role == 'ORGANIZER'}">
         <a href="${pageContext.request.contextPath}/grounds">Book a ground</a>
-        <a href="${pageContext.request.contextPath}/organizer">My matches &amp; requests</a>
+        <a href="${pageContext.request.contextPath}/organizer">Matches &amp; requests</a>
       </c:if>
       <c:if test="${user.role == 'PLAYER'}">
         <a href="${pageContext.request.contextPath}/matches">Find a match</a>

@@ -1,2 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Setup needed | Futsal Finder</title><link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261026"></head><body><header class="site-header"><div class="header-inner"><a class="brand" href="${pageContext.request.contextPath}/login">Futsal Finder</a></div></header><main class="container"><h1>Database setup needed</h1><p class="notice error">${error}</p><p>See README.md for the MySQL setup and startup commands.</p></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup needed | Futsal Finder</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/app.css?v=20261029">
+</head>
+<body>
+  <header class="site-header"><div class="header-inner"><a class="brand" href="${pageContext.request.contextPath}/login">Futsal Finder</a></div></header>
+  <main class="container">
+    <h1>Database setup needed</h1>
+    <p class="notice error">${error}</p>
+    <p>See README.md for MySQL setup and startup commands.</p>
+  </main>
+</body>
+</html>
